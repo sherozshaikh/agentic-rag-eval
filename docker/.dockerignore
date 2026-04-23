@@ -1,0 +1,75 @@
+# ==============================================================================
+# agentic-rag-eval — .dockerignore
+# Keeps the build context small and prevents secrets/caches from being baked
+# into image layers.
+# ==============================================================================
+
+# Version control
+.git
+.gitignore
+.gitattributes
+.github
+
+# Python caches
+__pycache__
+**/__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+.coverage.*
+htmlcov
+.tox
+.nox
+
+# Virtualenvs
+.venv
+venv
+env
+ENV
+
+# Build artefacts
+build
+dist
+*.egg-info
+*.egg
+wheels
+pip-wheel-metadata
+
+# IDE / editor
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+
+# Project data — must NEVER land in the image (models are downloaded at runtime)
+data
+models
+traces
+logs
+mem0_storage
+*.duckdb
+*.duckdb.wal
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+
+# Tests and docs (not needed for runtime image)
+tests
+docs
+notebooks
+*.ipynb
+
+# Local tooling
+Makefile.local
+docker-compose.override.yml

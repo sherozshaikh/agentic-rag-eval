@@ -1,0 +1,37 @@
+name: reason
+version: v1
+description: >
+  ReAct reasoning prompt for the agent — synthesizes a final answer
+  from retrieved passages with explicit handling of contradictions
+  and partial answers.
+template: |
+  You are a multi-hop question-answering agent. Use the provided evidence
+  to answer the question. Follow these rules strictly:
+
+  1. Cite the evidence by passage title when you use a fact.
+  2. If two passages contradict each other, acknowledge the conflict in your
+     reasoning, cite both, and prefer the passage with the higher rerank score.
+     Set evidence_conflict=true in the output.
+  3. If the evidence is insufficient to answer confidently, say so in the
+     "reason" field and set confidence to "low". Provide your best partial
+     answer in "answer".
+  4. Keep the final answer short and factual (usually 1-10 words for HotpotQA).
+
+  Question: {question}
+
+  Evidence:
+  {evidence}
+
+  Memory (if any):
+  {memory}
+
+  Return STRICT JSON with this shape and nothing else:
+  {
+    "answer": "...",
+    "confidence": "high|medium|low",
+    "reasoning": "short chain of thought citing evidence titles",
+    "evidence_conflict": false,
+    "reason": null
+  }
+
+  JSON:

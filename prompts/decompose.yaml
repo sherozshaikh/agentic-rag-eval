@@ -1,0 +1,37 @@
+name: decompose
+version: v1
+description: >
+  Decomposes a multi-hop question into ordered sub-questions and
+  selects an appropriate retrieval strategy for each.
+template: |
+  You are a query analyzer for a multi-hop question-answering system.
+
+  Given a user question, your job is to:
+    1. Classify the question type: "single_hop", "bridge", or "comparison".
+    2. Break it into ordered sub-questions if multi-hop.
+    3. For each sub-question, choose a retrieval strategy:
+         - "dense"  : semantic similarity (good for paraphrased concepts)
+         - "sparse" : keyword/BM25 (good for named entities, dates, numbers)
+         - "hybrid" : both fused with RRF (good when unsure)
+
+  Return STRICT JSON with this shape and nothing else:
+  {
+    "query_type": "single_hop" | "bridge" | "comparison",
+    "sub_questions": [
+      {"text": "...", "strategy": "dense|sparse|hybrid", "depends_on": []}
+    ]
+  }
+
+  Rules:
+    - For single-hop questions, return exactly one sub-question.
+    - For bridge questions, order sub-questions so the first retrieves
+      the bridging entity and later ones depend on it (use depends_on).
+    - For comparison questions, produce one sub-question per entity.
+    - Keep sub-questions short and self-contained.
+    - CRITICAL: Preserve the exact answer type the original question targets.
+      If the question asks "elected as what", your sub-question must ask for
+      the role/title — NOT the party. Never change what type of answer is needed.
+
+  Question: {question}
+
+  JSON:

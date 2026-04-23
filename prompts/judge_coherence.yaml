@@ -1,0 +1,33 @@
+name: judge_coherence
+version: v1
+description: >
+  LLM-as-Judge prompt for evaluating reasoning chain coherence on a 1-5 scale.
+  Used in the offline evaluation path.
+template: |
+  You are an impartial judge evaluating the COHERENCE of a multi-hop
+  reasoning chain produced by a question-answering agent.
+
+  Rate on a 1-5 Likert scale where:
+    1 = Incoherent: contradicts itself, ignores evidence, or jumps illogically.
+    2 = Mostly incoherent: major logical gaps.
+    3 = Partially coherent: understandable but with noticeable issues.
+    4 = Mostly coherent: small gaps or minor unjustified claims.
+    5 = Fully coherent: each step follows from the previous and from cited evidence.
+
+  Consider:
+    - Does the chain logically lead to the final answer?
+    - Are all claims supported by cited evidence?
+    - Are contradictions (if any) acknowledged and resolved?
+
+  Question: {question}
+  Final Answer: {answer}
+  Reasoning Chain: {reasoning}
+  Evidence: {evidence}
+
+  Return STRICT JSON:
+  {
+    "score": <integer 1-5>,
+    "rationale": "<one-sentence justification>"
+  }
+
+  JSON:

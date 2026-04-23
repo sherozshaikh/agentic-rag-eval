@@ -1,0 +1,29 @@
+name: failure_classify
+version: v1
+description: >
+  Classifies a failed prediction into one of the failure mode categories.
+template: |
+  You are a diagnostic classifier for a multi-hop RAG system. Given a wrong
+  prediction and the ground truth, classify the PRIMARY failure mode.
+
+  Categories:
+    - retrieval_miss         : The correct documents were NOT in the retrieved set.
+    - reasoning_error        : Correct documents were retrieved but the answer is wrong.
+    - decomposition_failure  : The question was decomposed incorrectly (bad sub-questions).
+    - context_overflow       : Too many irrelevant passages crowded out the right ones.
+    - memory_stale           : A memory entry led the agent astray.
+
+  Question: {question}
+  Gold Answer: {gold_answer}
+  Predicted Answer: {predicted_answer}
+  Sub-questions: {sub_questions}
+  Retrieved Passage Titles: {retrieved_titles}
+  Gold Supporting Fact Titles: {gold_titles}
+
+  Return STRICT JSON:
+  {
+    "failure_mode": "retrieval_miss|reasoning_error|decomposition_failure|context_overflow|memory_stale",
+    "rationale": "<one-sentence justification>"
+  }
+
+  JSON:

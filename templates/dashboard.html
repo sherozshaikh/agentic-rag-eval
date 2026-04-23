@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="page-header">
+  <h1>Overview</h1>
+  <p class="subtitle">
+    Pipeline comparison, recent evaluation runs, and system health at a glance.
+  </p>
+</section>
+
+<section class="kpi-row">
+  <article class="kpi-card">
+    <div class="kpi-label">Queries (24h)</div>
+    <div class="kpi-value">{{ traces_summary.count }}</div>
+  </article>
+  <article class="kpi-card">
+    <div class="kpi-label">Avg latency (24h)</div>
+    <div class="kpi-value">
+      {% if traces_summary.avg_latency_ms %}
+        {{ "%.0f"|format(traces_summary.avg_latency_ms) }} ms
+      {% else %}&mdash;{% endif %}
+    </div>
+  </article>
+  <article class="kpi-card">
+    <div class="kpi-label">Tokens (24h)</div>
+    <div class="kpi-value">{{ "{:,}".format(traces_summary.total_tokens) }}</div>
+  </article>
+  <article class="kpi-card">
+    <div class="kpi-label">Cost (24h)</div>
+    <div class="kpi-value">${{ "%.4f"|format(traces_summary.total_cost_usd) }}</div>
+  </article>
+  <article class="kpi-card">
+    <div class="kpi-label">Errors (24h)</div>
+    <div class="kpi-value {% if traces_summary.errors %}danger{% endif %}">
+      {{ traces_summary.errors }}
+    </div>
+  </article>
+</section>
+
+<section class="panel">
+  <h2>Pipeline comparison</h2>
+  {% if pipeline_matrix %}
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Pipeline</th>
+          <th># runs</th>
+          <th>EM</th>
+          <th>F1</th>
+          <th>SF-F1</th>
+          <th>R@5</th>
+          <th>MRR</th>
+          <th>Avg latency (ms)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in pipeline_matrix %}
+        <tr>
+          <td><strong>{{ row.pipeline }}</strong></td>
+          <td>{{ row.runs }}</td>
+          <td>{{ "%.3f"|format(row.em or 0) }}</td>
+          <td>{{ "%.3f"|format(row.f1 or 0) }}</td>
+          <td>{{ "%.3f"|format(row.sf_f1 or 0) }}</td>
+          <td>{{ "%.3f"|format(row.recall_at_5 or 0) }}</td>
+          <td>{{ "%.3f"|format(row.mrr or 0) }}</td>
+          <td>{{ "%.0f"|format(row.latency_ms or 0) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-wrap">
+      <canvas id="chart-pipeline-quality"></canvas>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="chart-failure-modes"></canvas>
+    </div>
+  </div>
+  {% else %}
+  <p class="empty-state">No evaluation runs recorded yet. Trigger one via <code>POST /batch-eval</code>.</p>
+  {% endif %}
+</section>
+
+<section class="panel">
+  <h2>Recent evaluation runs</h2>
+  {% if runs %}
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Run ID</th>
+          <th>Pipeline</th>
+          <th>Split</th>
+          <th># Q</th>
+          <th>Started</th>
+          <th>EM</th>
+          <th>F1</th>
+          <th>SF-F1</th>
+          <th>Latency</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in runs %}
+        <tr>
+          <td>
+            <a href="/dashboard/runs/{{ r.eval_run_id }}"><code>{{ r.eval_run_id }}</code></a>
+          </td>
+          <td>{{ r.pipeline }}</td>
+          <td>{{ r.dataset_split }}</td>
+          <td>{{ r.num_questions }}</td>
+          <td>{{ r.started_at.strftime("%Y-%m-%d %H:%M") if r.started_at else "&mdash;" }}</td>
+          <td>{{ "%.3f"|format(r.em or 0) }}</td>
+          <td>{{ "%.3f"|format(r.f1 or 0) }}</td>
+          <td>{{ "%.3f"|format(r.sf_f1 or 0) }}</td>
+          <td>{{ "%.0f"|format(r.latency_ms or 0) }} ms</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty-state">No runs yet.</p>
+  {% endif %}
+</section>
+
+<script id="dashboard-chart-data" type="application/json">{{ chart_data_json|safe }}</script>
+{% endblock %}

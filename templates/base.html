@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ title or "agentic-rag-eval" }}</title>
+  <link rel="stylesheet" href="/static/css/dashboard.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+  <script src="/static/js/dashboard.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <a href="/dashboard">
+        <span class="brand-mark">&#9679;</span>
+        agentic-rag-eval
+      </a>
+    </div>
+    <nav class="site-nav">
+      <a href="/dashboard">Overview</a>
+      <a href="/dashboard/traces">Traces</a>
+      <a href="/docs">API Docs</a>
+      <a href="/health">Health</a>
+      <a href="/metrics">Metrics</a>
+    </nav>
+  </header>
+
+  <main class="site-main">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <span>agentic-rag-eval &middot; v0.1.0</span>
+    <span>Data source: DuckDB trace store</span>
+  </footer>
+</body>
+</html>

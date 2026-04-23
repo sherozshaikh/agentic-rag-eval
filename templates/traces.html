@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="page-header">
+  <h1>Traces</h1>
+  <p class="subtitle">Recent query traces from the DuckDB store.</p>
+</section>
+
+<section class="panel">
+  <form method="get" action="/dashboard/traces" class="filter-bar">
+    <label>
+      Search
+      <input type="text" name="q" value="{{ search }}" placeholder="substring of question..." />
+    </label>
+    <label>
+      Pipeline
+      <select name="pipeline">
+        <option value="">Any</option>
+        {% for p in available_pipelines %}
+        <option value="{{ p }}" {% if p == pipeline %}selected{% endif %}>{{ p }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      Limit
+      <input type="number" name="limit" value="{{ limit }}" min="1" max="500" />
+    </label>
+    <button type="submit">Apply</button>
+    <a class="btn-ghost" href="/dashboard/traces">Reset</a>
+  </form>
+</section>
+
+<section class="panel">
+  <h2>{{ traces|length }} traces</h2>
+  {% if traces %}
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Trace</th>
+          <th>Pipeline</th>
+          <th>Question</th>
+          <th>Strategy</th>
+          <th>Confidence</th>
+          <th>Latency</th>
+          <th>Tokens</th>
+          <th>Cost</th>
+          <th>Failure</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in traces %}
+        <tr class="{% if t.failure_mode and t.failure_mode != 'none' %}row-bad{% endif %}">
+          <td>{{ t.ts.strftime("%Y-%m-%d %H:%M:%S") if t.ts else "&mdash;" }}</td>
+          <td><code>{{ t.trace_id[:12] }}</code></td>
+          <td>{{ t.pipeline }}</td>
+          <td class="cell-clip">{{ t.question }}</td>
+          <td>{{ t.strategy_used or "&mdash;" }}</td>
+          <td>{{ t.confidence or "&mdash;" }}</td>
+          <td>{{ "%.0f"|format(t.latency_ms or 0) }} ms</td>
+          <td>{{ t.tokens or 0 }}</td>
+          <td>${{ "%.5f"|format(t.cost_usd or 0) }}</td>
+          <td>{{ t.failure_mode or "none" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty-state">No traces match the current filter.</p>
+  {% endif %}
+</section>
+{% endblock %}

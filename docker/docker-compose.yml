@@ -1,0 +1,143 @@
+# ==============================================================================
+# agentic-rag-eval — docker-compose
+# ------------------------------------------------------------------------------
+# This compose file supports THREE deployment modes via profiles:
+#
+#   1. Hybrid (recommended for GPU VM) — DEFAULT
+#        $ docker compose -f docker/docker-compose.yml up -d
+#      Starts ONLY Qdrant in Docker. Ollama runs natively on the host for GPU
+#      access; the Python app runs natively via `uv sync` + `make eval`.
+#
+#   2. Full Docker (laptop demo, API-mode LLM, no GPU)
+#        $ docker compose -f docker/docker-compose.yml --profile full up -d
+#      Starts Qdrant + the agentic-rag-eval app container. The LLM is expected
+#      to be a hosted API (OpenRouter, Google AI Studio). Set LLM_BACKEND=api in
+#      your .env file.
+#
+#   3. Full Docker + local Ollama (GPU host, everything containerized)
+#        $ docker compose -f docker/docker-compose.yml \
+#              --profile full --profile gpu up -d
+#      Starts Qdrant + app + Ollama with NVIDIA GPU passthrough. Requires
+#      `nvidia-container-toolkit` installed on the host (see comments on the
+#      ollama service below).
+#
+# Paths in this file are relative to the `docker/` directory; the build context
+# for the app image is the project root (`..`).
+# ==============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # Qdrant — vector database. Always started (default profile).
+  # ---------------------------------------------------------------------------
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: agentic-rag-eval-qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"   # HTTP / REST
+      - "6334:6334"   # gRPC
+    volumes:
+      - qdrant_data:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__HTTP_PORT: "6333"
+      QDRANT__SERVICE__GRPC_PORT: "6334"
+      QDRANT__LOG_LEVEL: "INFO"
+    healthcheck:
+      # Qdrant exposes /readyz for readiness probes.
+      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/6333' || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ---------------------------------------------------------------------------
+  # agentic-rag-eval app — FastAPI + dashboard. Only started with --profile full.
+  # ---------------------------------------------------------------------------
+  agentic-rag-eval:
+    profiles: ["full"]
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: agentic-rag-eval:latest
+    container_name: agentic-rag-eval-app
+    restart: unless-stopped
+    depends_on:
+      qdrant:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    env_file:
+      - ../.env
+    environment:
+      # Override hostnames so containers can reach each other on the compose
+      # network, not on the host's localhost.
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: "6333"
+      QDRANT_GRPC_PORT: "6334"
+      # If the `gpu` profile is also active, point the app at the ollama
+      # service. For the laptop/API-mode demo these are ignored because
+      # LLM_BACKEND=api is set in .env.
+      LLM_API_BASE: "${LLM_API_BASE:-http://ollama:11434/v1}"
+    volumes:
+      - trace_data:/app/traces
+      - mem0_data:/app/mem0_storage
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+
+  # ---------------------------------------------------------------------------
+  # Ollama — local LLM server. Only started with --profile gpu.
+  # ---------------------------------------------------------------------------
+  # GPU PASSTHROUGH REQUIREMENTS
+  # ----------------------------
+  # To use this service with an NVIDIA GPU, the host must have:
+  #   - NVIDIA driver installed (nvidia-smi must work on the host)
+  #   - nvidia-container-toolkit installed
+  #       $ sudo apt-get install -y nvidia-container-toolkit
+  #       $ sudo nvidia-ctk runtime configure --runtime=docker
+  #       $ sudo systemctl restart docker
+  #
+  # Verify with:
+  #   $ docker run --rm --gpus all nvidia/cuda:12.4.1-base-ubuntu22.04 nvidia-smi
+  #
+  # On a host without a GPU, OMIT `--profile gpu` and use LLM_BACKEND=api in
+  # your .env instead.
+  # ---------------------------------------------------------------------------
+  ollama:
+    profiles: ["gpu"]
+    image: ollama/ollama:latest
+    container_name: agentic-rag-eval-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      OLLAMA_KEEP_ALIVE: "24h"
+      OLLAMA_HOST: "0.0.0.0:11434"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/11434' || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: ["gpu"]
+
+volumes:
+  qdrant_data:
+    name: agentic_rag_eval_qdrant_data
+  trace_data:
+    name: agentic_rag_eval_trace_data
+  mem0_data:
+    name: agentic_rag_eval_mem0_data
+  ollama_data:
+    name: agentic_rag_eval_ollama_data

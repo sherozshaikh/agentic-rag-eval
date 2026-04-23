@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="page-header">
+  <div class="breadcrumb">
+    <a href="/dashboard">&larr; All runs</a>
+  </div>
+  <h1>Run <code>{{ run.eval_run_id }}</code></h1>
+  <p class="subtitle">
+    {{ run.pipeline }} &middot; {{ run.dataset_split }} &middot; {{ run.num_questions }} questions
+    {% if run.git_sha %}&middot; git <code>{{ run.git_sha[:8] }}</code>{% endif %}
+  </p>
+  <p class="muted">
+    Started {{ run.started_at.strftime("%Y-%m-%d %H:%M UTC") if run.started_at else "&mdash;" }}
+    {% if run.finished_at %}
+      &middot; Finished {{ run.finished_at.strftime("%Y-%m-%d %H:%M UTC") }}
+    {% else %}
+      &middot; <span class="badge running">running</span>
+    {% endif %}
+  </p>
+</section>
+
+<section class="kpi-row">
+  <article class="kpi-card">
+    <div class="kpi-label">Exact match</div>
+    <div class="kpi-value">{{ "%.3f"|format(metrics.em or 0) }}</div>
+  </article>
+  <article class="kpi-card">
+    <div class="kpi-label">F1</div>
+    <div class="kpi-value">{{ "%.3f"|format(metrics.f1 or 0) }}</div>
+  </article>
+  <article class="kpi-card">
+    <div class="kpi-label">SF-F1</div>
+    <div class="kpi-value">{{ "%.3f"|format(metrics.sf_f1 or 0) }}</div>
+  </article>
+  <article class="kpi-card">
+    <div class="kpi-label">Recall@5</div>
+    <div class="kpi-value">{{ "%.3f"|format(metrics.recall_at_5 or 0) }}</div>
+  </article>
+  <article class="kpi-card">
+    <div class="kpi-label">MRR</div>
+    <div class="kpi-value">{{ "%.3f"|format(metrics.mrr or 0) }}</div>
+  </article>
+  <article class="kpi-card">
+    <div class="kpi-label">Avg latency</div>
+    <div class="kpi-value">{{ "%.0f"|format(metrics.latency_ms or 0) }} ms</div>
+  </article>
+</section>
+
+<section class="panel">
+  <h2>Metric profile</h2>
+  <div class="chart-grid">
+    <div class="chart-wrap">
+      <canvas id="chart-run-metrics"></canvas>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="chart-run-failures"></canvas>
+    </div>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>Per-question records <span class="muted">(first {{ records|length }})</span></h2>
+  {% if records %}
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Question</th>
+          <th>Gold</th>
+          <th>Predicted</th>
+          <th>EM</th>
+          <th>F1</th>
+          <th>Strategy</th>
+          <th>Failure</th>
+          <th>Latency</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in records %}
+        <tr class="{% if r.failure_mode and r.failure_mode != 'none' %}row-bad{% endif %}">
+          <td><code>{{ r.question_id }}</code></td>
+          <td class="cell-clip">{{ r.question }}</td>
+          <td class="cell-clip">{{ r.gold_answer }}</td>
+          <td class="cell-clip">{{ r.predicted_answer }}</td>
+          <td>{{ "%.2f"|format(r.exact_match or 0) }}</td>
+          <td>{{ "%.2f"|format(r.f1 or 0) }}</td>
+          <td>{{ r.strategy_used or "&mdash;" }}</td>
+          <td>{{ r.failure_mode or "none" }}</td>
+          <td>{{ "%.0f"|format(r.latency_ms or 0) }} ms</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty-state">No records stored for this run.</p>
+  {% endif %}
+</section>
+
+<section class="panel">
+  <h2>Config snapshot</h2>
+  <pre class="code-block">{{ run.config_snapshot | tojson(indent=2) }}</pre>
+</section>
+
+<script id="dashboard-chart-data" type="application/json">{{ chart_data_json|safe }}</script>
+{% endblock %}

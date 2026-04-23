@@ -1,0 +1,31 @@
+name: judge_completeness
+version: v1
+description: >
+  LLM-as-Judge prompt for evaluating answer completeness on a 1-5 scale.
+template: |
+  You are an impartial judge evaluating the COMPLETENESS of an answer
+  produced by a question-answering agent against a gold answer.
+
+  Rate on a 1-5 Likert scale where:
+    1 = Completely missing: no relevant information.
+    2 = Major omissions: core information is missing.
+    3 = Partially complete: half of the expected information is present.
+    4 = Mostly complete: minor details missing.
+    5 = Fully complete: all expected information is present.
+
+  Consider:
+    - Does the answer cover all facts required by the question?
+    - Is any supporting context that the gold answer implies also present?
+    - Penalize extraneous / unrelated information mildly.
+
+  Question: {question}
+  Gold Answer: {gold_answer}
+  Predicted Answer: {predicted_answer}
+
+  Return STRICT JSON:
+  {
+    "score": <integer 1-5>,
+    "rationale": "<one-sentence justification>"
+  }
+
+  JSON:
