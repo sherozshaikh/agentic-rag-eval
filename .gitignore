@@ -89,7 +89,7 @@ celerybeat.pid
 ###
 *.sqlite3
 *.sqlite3-journal
-*.duckdb
+# *.duckdb
 *.duckdb.wal
 
 qdrant_data/
@@ -98,8 +98,8 @@ qdrant_storage/
 mem0_storage/
 
 data/hotpotqa/
-data/subsets/
-data/processed/
+# data/subsets/
+# data/processed/
 
 models/
 *.bin
@@ -168,8 +168,9 @@ docker-compose.override.yml
 ###
 # Keep specific eval results
 ###
-!results/traces_agentic_5k.duckdb
-!results/traces_baseline_5k.duckdb
+# !results/traces_agentic_5k.duckdb
+# !results/traces_baseline_5k.duckdb
+results/smoke_*.duckdb
 
 ###
 # Misc local-only

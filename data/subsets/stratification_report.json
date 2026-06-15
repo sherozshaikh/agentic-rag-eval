@@ -1,0 +1,239 @@
+{
+  "chi_squared": {
+    "alpha": 0.05,
+    "details": {
+      "full_size": 90447,
+      "length_bucket": {
+        "categories": [
+          "long",
+          "medium",
+          "short",
+          "xlong"
+        ],
+        "expected": [
+          515.9927913584751,
+          2664.322752551218,
+          1765.9513306135086,
+          53.73312547679857
+        ],
+        "observed": [
+          517.0,
+          2664.0,
+          1766.0,
+          53.0
+        ]
+      },
+      "level": {
+        "categories": [
+          "easy",
+          "hard",
+          "medium"
+        ],
+        "expected": [
+          993.5100113878846,
+          865.7556358972658,
+          3140.7343527148496
+        ],
+        "observed": [
+          993.0,
+          866.0,
+          3141.0
+        ]
+      },
+      "subset_size": 5000,
+      "type": {
+        "categories": [
+          "bridge",
+          "comparison"
+        ],
+        "expected": [
+          4035.0149811491815,
+          964.9850188508187
+        ],
+        "observed": [
+          4034.0,
+          966.0
+        ]
+      }
+    },
+    "length_bucket_p_value": 0.9996512437573157,
+    "level_p_value": 0.9998233892938587,
+    "passed": true,
+    "type_p_value": 0.9709862119620499
+  },
+  "stratification": {
+    "num_strata": 24,
+    "seed": 42,
+    "size": 5000,
+    "strata": [
+      {
+        "full_count": 1817,
+        "length_bucket": "long",
+        "level": "easy",
+        "subset_count": 101,
+        "type": "bridge"
+      },
+      {
+        "full_count": 8112,
+        "length_bucket": "medium",
+        "level": "easy",
+        "subset_count": 448,
+        "type": "bridge"
+      },
+      {
+        "full_count": 4114,
+        "length_bucket": "short",
+        "level": "easy",
+        "subset_count": 227,
+        "type": "bridge"
+      },
+      {
+        "full_count": 423,
+        "length_bucket": "xlong",
+        "level": "easy",
+        "subset_count": 23,
+        "type": "bridge"
+      },
+      {
+        "full_count": 1859,
+        "length_bucket": "long",
+        "level": "hard",
+        "subset_count": 103,
+        "type": "bridge"
+      },
+      {
+        "full_count": 6894,
+        "length_bucket": "medium",
+        "level": "hard",
+        "subset_count": 381,
+        "type": "bridge"
+      },
+      {
+        "full_count": 3437,
+        "length_bucket": "short",
+        "level": "hard",
+        "subset_count": 190,
+        "type": "bridge"
+      },
+      {
+        "full_count": 261,
+        "length_bucket": "xlong",
+        "level": "hard",
+        "subset_count": 14,
+        "type": "bridge"
+      },
+      {
+        "full_count": 4392,
+        "length_bucket": "long",
+        "level": "medium",
+        "subset_count": 243,
+        "type": "bridge"
+      },
+      {
+        "full_count": 26900,
+        "length_bucket": "medium",
+        "level": "medium",
+        "subset_count": 1487,
+        "type": "bridge"
+      },
+      {
+        "full_count": 14670,
+        "length_bucket": "short",
+        "level": "medium",
+        "subset_count": 811,
+        "type": "bridge"
+      },
+      {
+        "full_count": 112,
+        "length_bucket": "xlong",
+        "level": "medium",
+        "subset_count": 6,
+        "type": "bridge"
+      },
+      {
+        "full_count": 275,
+        "length_bucket": "long",
+        "level": "easy",
+        "subset_count": 15,
+        "type": "comparison"
+      },
+      {
+        "full_count": 1161,
+        "length_bucket": "medium",
+        "level": "easy",
+        "subset_count": 64,
+        "type": "comparison"
+      },
+      {
+        "full_count": 1948,
+        "length_bucket": "short",
+        "level": "easy",
+        "subset_count": 108,
+        "type": "comparison"
+      },
+      {
+        "full_count": 122,
+        "length_bucket": "xlong",
+        "level": "easy",
+        "subset_count": 7,
+        "type": "comparison"
+      },
+      {
+        "full_count": 289,
+        "length_bucket": "long",
+        "level": "hard",
+        "subset_count": 16,
+        "type": "comparison"
+      },
+      {
+        "full_count": 1212,
+        "length_bucket": "medium",
+        "level": "hard",
+        "subset_count": 67,
+        "type": "comparison"
+      },
+      {
+        "full_count": 1661,
+        "length_bucket": "short",
+        "level": "hard",
+        "subset_count": 92,
+        "type": "comparison"
+      },
+      {
+        "full_count": 48,
+        "length_bucket": "xlong",
+        "level": "hard",
+        "subset_count": 3,
+        "type": "comparison"
+      },
+      {
+        "full_count": 702,
+        "length_bucket": "long",
+        "level": "medium",
+        "subset_count": 39,
+        "type": "comparison"
+      },
+      {
+        "full_count": 3917,
+        "length_bucket": "medium",
+        "level": "medium",
+        "subset_count": 217,
+        "type": "comparison"
+      },
+      {
+        "full_count": 6115,
+        "length_bucket": "short",
+        "level": "medium",
+        "subset_count": 338,
+        "type": "comparison"
+      },
+      {
+        "full_count": 6,
+        "length_bucket": "xlong",
+        "level": "medium",
+        "subset_count": 0,
+        "type": "comparison"
+      }
+    ]
+  }
+}
