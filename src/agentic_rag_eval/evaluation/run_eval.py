@@ -162,6 +162,7 @@ def main(
         enable_judge=not no_judge,
         enable_failure_classifier=not no_failure_classifier,
         per_question_heavy_evals=per_question_heavy,
+        num_workers=settings.eval_num_workers,
     )
 
     click.echo(f"Starting eval run for pipeline={pipeline}, split={split}...")

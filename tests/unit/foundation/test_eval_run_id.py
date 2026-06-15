@@ -11,7 +11,7 @@ from agentic_rag_eval.prompts import get_prompt_registry
 def test_compute_eval_run_id_is_deterministic() -> None:
     """Two invocations with the same inputs must return identical IDs."""
     get_prompt_registry.cache_clear()
-    settings = Settings(llm_model="qwen3.5:9b")
+    settings = Settings(llm_model="qwen2.5:7b-instruct")
 
     id1 = compute_eval_run_id(settings, pipeline="baseline", dataset_split="validation")
     id2 = compute_eval_run_id(settings, pipeline="baseline", dataset_split="validation")
@@ -22,7 +22,7 @@ def test_compute_eval_run_id_is_deterministic() -> None:
 def test_compute_eval_run_id_changes_when_settings_change() -> None:
     """Changing any hashed setting must produce a different ID."""
     get_prompt_registry.cache_clear()
-    s1 = Settings(llm_model="qwen3.5:9b")
+    s1 = Settings(llm_model="qwen2.5:7b-instruct")
     s2 = Settings(llm_model="openai/gpt-4o-mini")
 
     id1 = compute_eval_run_id(s1, pipeline="baseline", dataset_split="validation")

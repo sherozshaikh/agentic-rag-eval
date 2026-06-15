@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import threading
 import time
 import traceback
 from collections.abc import Callable, Iterable
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any, Protocol
@@ -74,6 +76,7 @@ class EvalRunner:
         enable_failure_classifier: bool = True,
         progress_every: int = 25,
         per_question_heavy_evals: bool = False,
+        num_workers: int | None = None,
     ) -> None:
         self._settings = settings or get_settings()
         self._pipeline = pipeline
@@ -81,6 +84,7 @@ class EvalRunner:
         self._answerer = answerer
         self._progress_every = progress_every
         self._per_question_heavy = per_question_heavy_evals
+        self._num_workers = num_workers if num_workers is not None else self._settings.eval_num_workers
 
         self._enable_ragas = enable_ragas
         self._enable_deepeval = enable_deepeval
@@ -88,6 +92,7 @@ class EvalRunner:
         self._enable_failure_classifier = enable_failure_classifier
 
         self._trace_logger = get_trace_logger(self._settings)
+        self._write_lock = threading.Lock()
 
         self._ragas: RAGASEvaluator | None = None
         self._deepeval: DeepEvalEvaluator | None = None
@@ -140,20 +145,31 @@ class EvalRunner:
         counters = _RunCounters(total=len(items))
         completed_records: list[EvalRecord] = []
 
+        # Build work list upfront — already_done check happens before submission,
+        # so each question_id goes to exactly one worker (no duplicates possible).
+        pending: list[tuple[int, str, dict[str, Any]]] = []
         for idx, item in enumerate(items, start=1):
             qid = str(item.get("question_id") or item.get("id") or f"q{idx}")
             if qid in already_done:
                 counters.skipped += 1
-                continue
+            else:
+                pending.append((idx, qid, item))
 
+        logger.info(
+            "eval_run_workers",
+            extra={"num_workers": self._num_workers, "pending": len(pending)},
+        )
+
+        def _process_item(task: tuple[int, str, dict[str, Any]]) -> tuple[EvalRecord, QueryResponse, str] | None:
+            _, qid, item = task
             try:
                 record, response = self._process_one(
                     eval_run_id=eval_run_id,
                     question_id=qid,
                     item=item,
                 )
+                return record, response, qid
             except Exception as e:
-                counters.errored += 1
                 logger.error(
                     "eval_question_failed",
                     extra={
@@ -163,52 +179,65 @@ class EvalRunner:
                         "traceback": traceback.format_exc(limit=3),
                     },
                 )
-                continue
+                return None
 
-            if self._per_question_heavy:
-                try:
-                    self._run_heavy_evals_single(record, response, item)
-                except Exception as e:
-                    logger.warning(
-                        "eval_heavy_single_failed",
-                        extra={"question_id": qid, "error": str(e)},
-                    )
+        with ThreadPoolExecutor(max_workers=self._num_workers) as pool:
+            futures = {pool.submit(_process_item, task): task for task in pending}
+            for future in as_completed(futures):
+                result = future.result()
+                if result is None:
+                    with self._write_lock:
+                        counters.errored += 1
+                    continue
 
-            if self._enable_failure_classifier and self._is_failure(record):
-                try:
-                    fc = self._get_failure_classifier()
-                    record.failure_mode = fc.classify(record, response)
-                    if record.failure_mode != FailureMode.NONE:
-                        counters.failures_classified += 1
-                except Exception as e:
-                    logger.warning(
-                        "failure_classifier_errored",
-                        extra={"question_id": qid, "error": str(e)},
-                    )
+                record, response, qid = result
 
-            try:
-                self._trace_logger.record_eval_records([record])
-            except Exception as e:
-                logger.error(
-                    "eval_record_persist_failed",
-                    extra={"question_id": qid, "error": str(e)},
-                )
+                if self._per_question_heavy:
+                    _, _, item = futures[future]
+                    try:
+                        self._run_heavy_evals_single(record, response, item)
+                    except Exception as e:
+                        logger.warning(
+                            "eval_heavy_single_failed",
+                            extra={"question_id": qid, "error": str(e)},
+                        )
 
-            completed_records.append(record)
-            counters.done += 1
-            counters.timings.append(record.latency_ms)
+                if self._enable_failure_classifier and self._is_failure(record):
+                    try:
+                        with self._write_lock:
+                            fc = self._get_failure_classifier()
+                        record.failure_mode = fc.classify(record, response)
+                        if record.failure_mode != FailureMode.NONE:
+                            with self._write_lock:
+                                counters.failures_classified += 1
+                    except Exception as e:
+                        logger.warning(
+                            "failure_classifier_errored",
+                            extra={"question_id": qid, "error": str(e)},
+                        )
 
-            if counters.done % self._progress_every == 0:
-                logger.info(
-                    "eval_progress",
-                    extra={
-                        "eval_run_id": eval_run_id,
-                        "done": counters.done,
-                        "errored": counters.errored,
-                        "skipped": counters.skipped,
-                        "total": counters.total,
-                    },
-                )
+                with self._write_lock:
+                    try:
+                        self._trace_logger.record_eval_records([record])
+                    except Exception as e:
+                        logger.error(
+                            "eval_record_persist_failed",
+                            extra={"question_id": qid, "error": str(e)},
+                        )
+                    completed_records.append(record)
+                    counters.done += 1
+                    counters.timings.append(record.latency_ms)
+                    if counters.done % self._progress_every == 0:
+                        logger.info(
+                            "eval_progress",
+                            extra={
+                                "eval_run_id": eval_run_id,
+                                "done": counters.done,
+                                "errored": counters.errored,
+                                "skipped": counters.skipped,
+                                "total": counters.total,
+                            },
+                        )
 
         if not self._per_question_heavy and completed_records:
             try:

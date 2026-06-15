@@ -6,7 +6,7 @@
 #
 #   - Python 3.11+ available
 #   - uv installed
-#   - Ollama running and has qwen3.5:9b pulled
+#   - Ollama running and has qwen2.5:7b-instruct pulled
 #   - Qdrant responding on :6333
 #   - NVIDIA GPU visible (warning only)
 #   - Disk space in cwd (warning below 20 GB)
@@ -42,7 +42,7 @@ mark_warn() { WARNINGS=$((WARNINGS + 1)); check "${WARN}" "$1"; [[ -n "${2:-}" ]
 
 section() { printf '\n%s%s%s\n' "${C_BOLD}" "$1" "${C_RESET}"; }
 
-OLLAMA_MODEL="${OLLAMA_MODEL:-qwen3.5:9b}"
+OLLAMA_MODEL="${OLLAMA_MODEL:-qwen2.5:7b-instruct}"
 QDRANT_URL="${QDRANT_URL:-http://127.0.0.1:6333}"
 OLLAMA_URL="${OLLAMA_URL:-http://127.0.0.1:11434}"
 

@@ -1,0 +1,50 @@
+
+======================================================================
+  Hybrid-only CORRECT, Agentic-full WRONG
+======================================================================
+
+  Example 1:
+  Q:  Lionel Hugh Harvey,  is a retired Canadian professional ice hockey forward who played 18 games for the Kansas City Scouts, a professional ice hockey team in which sports organization?
+  Gold:          National Hockey League (NHL)
+  hybrid-only (correct): National Hockey League (NHL)
+  agentic-full (wrong):   National Hockey League  (F1=0.86)
+
+
+  Example 2:
+  Q:  George Naea was the father of?
+  Gold:          Queen Emma of Hawaii
+  hybrid-only (correct): Queen Emma of Hawaii
+  agentic-full (wrong):   George Marion Jr.  (F1=0.00)
+
+
+  Example 3:
+  Q:  What was the radical organization founded by James Ellison dedicated to?
+  Gold:          Christian Identity and survivalism
+  hybrid-only (correct): Christian Identity and survivalism
+  agentic-full (wrong):   The Covenant, The Sword, and the Arm of the Lord (CSA)  (F1=0.18)
+
+
+======================================================================
+  Steps-2 CORRECT, Steps-1 WRONG
+======================================================================
+
+  Example 1:
+  Q:   Acid Brass is a musical collaboration between Turner-Prize-winning artist Jeremy Deller and the Williams Fairey Brass Band and based on fusing the music of a traditional brass band with acid house and Detroit techno, a type of techno music that generally includes the first techno productions by Detroit-based artists during what years?
+  Gold:          the 1980s and early 1990s
+  steps-2 (correct): 1980s and early 1990s
+  steps-1 (wrong):   1980s  (F1=0.40)
+
+
+  Example 2:
+  Q:  What song written by Leonard McNally with music composed by James Hook was the favorite song of the King of the United Kingdom of Great Britain and Ireland?
+  Gold:          The Lass of Richmond Hill
+  steps-2 (correct): The Lass of Richmond Hill
+  steps-1 (wrong):   Low confidence, insufficient information  (F1=0.00)
+
+
+  Example 3:
+  Q:  Suzanne Clement and Xavier Dolan are both from Canada and collaborated together in which art house film in 2009?
+  Gold:          "I Killed My Mother"
+  steps-2 (correct): I Killed My Mother
+  steps-1 (wrong):   Lowland Girls  (F1=0.00)
+

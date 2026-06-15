@@ -48,6 +48,15 @@ class Settings(BaseSettings):
     context_budget_tokens: int = Field(default=16000, ge=1024)
     generation_reserve_tokens: int = Field(default=2000, ge=256)
 
+    # Ablation flags — set via env vars for controlled component isolation
+    ablation_no_decomp: bool = Field(default=False)
+    ablation_no_reranker: bool = Field(default=False)
+    # Force a fixed retrieval strategy: "dense" | "sparse" | "hybrid" | "" (adaptive)
+    ablation_force_strategy: str = Field(default="")
+
+    # Parallel eval workers — set EVAL_NUM_WORKERS=4 to use 4 threads
+    eval_num_workers: int = Field(default=1, ge=1)
+
     hotpotqa_subset_size: int = Field(default=5000, ge=1)
     hotpotqa_random_seed: int = Field(default=42)
 

@@ -1,0 +1,4 @@
+strategy_used,n,pct,em,f1
+sparse,3961,79.2,53.9,62.0
+hybrid,814,16.3,50.9,59.8
+dense,225,4.5,50.7,59.8

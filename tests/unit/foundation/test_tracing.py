@@ -132,7 +132,7 @@ def test_record_and_finalize_eval_run(tmp_trace_db: TraceLogger) -> None:
         pipeline="baseline",
         dataset_split="validation",
         num_questions=100,
-        config_snapshot={"llm_model": "qwen3.5:9b"},
+        config_snapshot={"llm_model": "qwen2.5:7b-instruct"},
     )
 
     tmp_trace_db.record_eval_run(meta)
@@ -151,7 +151,7 @@ def test_record_and_finalize_eval_run(tmp_trace_db: TraceLogger) -> None:
     assert row[3] == "validation"
     assert row[4] == 100
     assert row[5] is None
-    assert json.loads(row[6]) == {"llm_model": "qwen3.5:9b"}
+    assert json.loads(row[6]) == {"llm_model": "qwen2.5:7b-instruct"}
 
     tmp_trace_db.finalize_eval_run("run-xyz")
 

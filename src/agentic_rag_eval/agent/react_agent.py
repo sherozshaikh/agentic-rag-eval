@@ -172,18 +172,23 @@ class ReActAgent:
 
     def _node_decompose(self, state: AgentState, ctx: TraceContext) -> AgentState:
         with self._tracer.span(ctx, "decompose") as span:
-            try:
-                query_type, sub_questions = self._decomposer.decompose(state["question"])
-            except Exception as e:
-                logger.warning("decompose_node_error", extra={"error": str(e)})
-                query_type = QueryType.SINGLE_HOP
-                sub_questions = [
-                    SubQuestion(
-                        text=state["question"],
-                        strategy=RetrievalStrategy.HYBRID,
-                    )
-                ]
-                state["error"] = f"decompose_failed: {e}"
+            # Ablation: skip LLM decomposition, treat raw question as single sub-question
+            if self._settings.ablation_no_decomp:
+                query_type, sub_questions = self._decomposer._fallback(state["question"])
+                span.metadata["ablation_no_decomp"] = True
+            else:
+                try:
+                    query_type, sub_questions = self._decomposer.decompose(state["question"])
+                except Exception as e:
+                    logger.warning("decompose_node_error", extra={"error": str(e)})
+                    query_type = QueryType.SINGLE_HOP
+                    sub_questions = [
+                        SubQuestion(
+                            text=state["question"],
+                            strategy=RetrievalStrategy.HYBRID,
+                        )
+                    ]
+                    state["error"] = f"decompose_failed: {e}"
 
             state["query_type"] = query_type
             state["sub_questions"] = sub_questions

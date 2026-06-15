@@ -159,7 +159,7 @@ def test_build_llm_client_agent_vs_eval_differ() -> None:
     """`role=agent` and `role=eval` must produce distinct client configs."""
     settings = Settings(
         llm_backend="local",
-        llm_model="qwen3.5:9b",
+        llm_model="qwen2.5:7b-instruct",
         llm_api_base="http://localhost:11434/v1",
         llm_api_key="ollama",
         eval_llm_backend="api",
@@ -172,7 +172,7 @@ def test_build_llm_client_agent_vs_eval_differ() -> None:
         agent_client = build_llm_client(settings, role="agent")
         eval_client = build_llm_client(settings, role="eval")
 
-    assert agent_client.model == "qwen3.5:9b"
+    assert agent_client.model == "qwen2.5:7b-instruct"
     assert agent_client.backend == "local"
     assert eval_client.model == "google/gemini-2.5-flash"
     assert eval_client.backend == "api"

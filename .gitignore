@@ -175,3 +175,4 @@ docker-compose.override.yml
 # Misc local-only
 ###
 other_files_LOCAL/
+arxiv_paper_submission/

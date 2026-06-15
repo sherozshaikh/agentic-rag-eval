@@ -25,6 +25,49 @@ eval:
 eval-full:
 	uv run python -m agentic_rag_eval.evaluation.run_eval --full --pipeline agentic --no-judge --no-failure-classifier
 
+# ----- Ablation study -----
+# Each run saves results to results/ablation_<name>.duckdb
+# Run individually or chain with: make ablations
+# Note: lru_cache on get_settings() is per-process — each make target spawns fresh process
+
+ablation-no-decomp:
+	ABLATION_NO_DECOMP=true TRACE_DB_PATH=./results/ablation_no_decomp.duckdb \
+	uv run python -m agentic_rag_eval.evaluation.run_eval --subset --pipeline agentic --no-judge --no-failure-classifier
+
+ablation-no-reranker:
+	ABLATION_NO_RERANKER=true TRACE_DB_PATH=./results/ablation_no_reranker.duckdb \
+	uv run python -m agentic_rag_eval.evaluation.run_eval --subset --pipeline agentic --no-judge --no-failure-classifier
+
+ablation-steps-1:
+	MAX_AGENT_STEPS=1 TRACE_DB_PATH=./results/ablation_steps_1.duckdb \
+	uv run python -m agentic_rag_eval.evaluation.run_eval --subset --pipeline agentic --no-judge --no-failure-classifier
+
+ablation-steps-2:
+	MAX_AGENT_STEPS=2 TRACE_DB_PATH=./results/ablation_steps_2.duckdb \
+	uv run python -m agentic_rag_eval.evaluation.run_eval --subset --pipeline agentic --no-judge --no-failure-classifier
+
+ablation-steps-3:
+	MAX_AGENT_STEPS=3 TRACE_DB_PATH=./results/ablation_steps_3.duckdb \
+	uv run python -m agentic_rag_eval.evaluation.run_eval --subset --pipeline agentic --no-judge --no-failure-classifier
+
+ablation-dense-only:
+	ABLATION_FORCE_STRATEGY=dense TRACE_DB_PATH=./results/ablation_dense_only.duckdb \
+	uv run python -m agentic_rag_eval.evaluation.run_eval --subset --pipeline agentic --no-judge --no-failure-classifier
+
+ablation-sparse-only:
+	ABLATION_FORCE_STRATEGY=sparse TRACE_DB_PATH=./results/ablation_sparse_only.duckdb \
+	uv run python -m agentic_rag_eval.evaluation.run_eval --subset --pipeline agentic --no-judge --no-failure-classifier
+
+ablation-hybrid-only:
+	ABLATION_FORCE_STRATEGY=hybrid TRACE_DB_PATH=./results/ablation_hybrid_only.duckdb \
+	uv run python -m agentic_rag_eval.evaluation.run_eval --subset --pipeline agentic --no-judge --no-failure-classifier
+
+ablations: ablation-no-decomp ablation-no-reranker ablation-steps-1 ablation-steps-2 ablation-steps-3 ablation-dense-only ablation-sparse-only ablation-hybrid-only
+
+analyze-ablations:
+# 	uv run python scripts/analyze_results.py --ablations
+	time python scripts/analyze_results.py --ablations
+
 # ----- Testing -----
 test:
 	uv run pytest
@@ -82,7 +125,7 @@ docker-gpu-up:
 docker-down:
 	docker compose -f docker/docker-compose.yml down
 
-.PHONY: help install install-dev seed index baseline eval eval-full test test-unit test-integration lint format typecheck clean clean-traces serve docker-build docker-up docker-down docker-gpu-up
+.PHONY: help install install-dev seed index baseline eval eval-full test test-unit test-integration lint format typecheck clean clean-traces serve docker-build docker-up docker-down docker-gpu-up ablation-no-decomp ablation-no-reranker ablation-steps-1 ablation-steps-2 ablation-steps-3 ablation-dense-only ablation-sparse-only ablation-hybrid-only ablations analyze-ablations
 
 help:
 	@echo "agentic-rag-eval — Makefile targets"
@@ -99,6 +142,18 @@ help:
 	@echo "  baseline          Run naive RAG baseline on HotpotQA subset"
 	@echo "  eval              Run full agentic pipeline eval on subset"
 	@echo "  eval-full         Run full eval on 7.4K HotpotQA validation set"
+	@echo ""
+	@echo "Ablation study:"
+	@echo "  ablation-no-decomp    Agentic w/o question decomposition (~8h)"
+	@echo "  ablation-no-reranker  Agentic w/o cross-encoder reranker (~8h)"
+	@echo "  ablation-steps-1      Agentic capped at 1 ReAct step (~2.5h)"
+	@echo "  ablation-steps-2      Agentic capped at 2 ReAct steps (~4h)"
+	@echo "  ablation-steps-3      Agentic capped at 3 ReAct steps (~6h)"
+	@echo "  ablation-dense-only   Force dense retrieval for all queries (~9h)"
+	@echo "  ablation-sparse-only  Force sparse/BM25 for all queries (~9h)"
+	@echo "  ablation-hybrid-only  Force hybrid/RRF for all queries (~9h)"
+	@echo "  ablations             Run all 8 ablations sequentially (~60h total)"
+	@echo "  analyze-ablations     Print ablation comparison table"
 	@echo ""
 	@echo "Testing:"
 	@echo "  test              Run all tests"

@@ -3,15 +3,23 @@ from __future__ import annotations
 import time
 from typing import TYPE_CHECKING
 
+from agentic_rag_eval.config import get_settings
 from agentic_rag_eval.logging_setup import get_logger
 from agentic_rag_eval.retrieval.reranker import Reranker
 from agentic_rag_eval.retrieval.retriever import Retriever
 from agentic_rag_eval.retrieval.strategy_selector import StrategySelector
+from agentic_rag_eval.schemas import RetrievalStrategy
 
 if TYPE_CHECKING:
     from agentic_rag_eval.schemas import Passage
 
 logger = get_logger(__name__)
+
+_FORCE_STRATEGY_MAP: dict[str, RetrievalStrategy] = {
+    "dense": RetrievalStrategy.DENSE,
+    "sparse": RetrievalStrategy.SPARSE,
+    "hybrid": RetrievalStrategy.HYBRID,
+}
 
 
 class AdaptiveRetriever:
@@ -41,9 +49,13 @@ class AdaptiveRetriever:
             )
             rerank_top_k = top_k
 
+        settings = get_settings()
         start = time.perf_counter()
 
-        strategy = self._selector.select(query)
+        # Ablation: force a fixed retrieval strategy instead of adaptive selection
+        forced = _FORCE_STRATEGY_MAP.get(settings.ablation_force_strategy.lower())
+        strategy = forced if forced is not None else self._selector.select(query)
+
         retrieval = self._retriever.retrieve(query, strategy=strategy, top_k=top_k)
 
         if not retrieval.passages:
@@ -53,11 +65,15 @@ class AdaptiveRetriever:
             )
             return []
 
-        reranked = self._reranker.rerank(
-            query=query,
-            passages=retrieval.passages,
-            top_k=rerank_top_k,
-        )
+        # Ablation: skip cross-encoder reranker, return raw retrieval top-k
+        if settings.ablation_no_reranker:
+            result = retrieval.passages[:rerank_top_k]
+        else:
+            result = self._reranker.rerank(
+                query=query,
+                passages=retrieval.passages,
+                top_k=rerank_top_k,
+            )
 
         latency_ms = (time.perf_counter() - start) * 1000.0
         logger.info(
@@ -65,8 +81,10 @@ class AdaptiveRetriever:
             extra={
                 "strategy": strategy.value,
                 "first_stage": len(retrieval.passages),
-                "final": len(reranked),
+                "final": len(result),
                 "latency_ms": round(latency_ms, 2),
+                "no_reranker": settings.ablation_no_reranker,
+                "force_strategy": settings.ablation_force_strategy or "adaptive",
             },
         )
-        return reranked
+        return result

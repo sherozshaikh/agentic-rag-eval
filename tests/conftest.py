@@ -39,11 +39,11 @@ def settings(tmp_path: Path) -> Settings:
     """
     return Settings(
         llm_backend="local",
-        llm_model="qwen3.5:9b",
+        llm_model="qwen2.5:7b-instruct",
         llm_api_base="http://localhost:11434/v1",
         llm_api_key="ollama",
         eval_llm_backend="local",
-        eval_llm_model="qwen3.5:9b-eval",
+        eval_llm_model="qwen2.5:7b-instruct",
         eval_llm_api_base="http://localhost:11434/v1",
         eval_llm_api_key="ollama",
         trace_db_path=tmp_path / "traces.duckdb",
@@ -64,11 +64,11 @@ def mock_settings(monkeypatch: MonkeyPatch, tmp_path: Path) -> Settings:
     """
     env_vars = {
         "LLM_BACKEND": "local",
-        "LLM_MODEL": "qwen3.5:9b",
+        "LLM_MODEL": "qwen2.5:7b-instruct",
         "LLM_API_BASE": "http://localhost:11434/v1",
         "LLM_API_KEY": "ollama",
         "EVAL_LLM_BACKEND": "local",
-        "EVAL_LLM_MODEL": "qwen3.5:9b-eval",
+        "EVAL_LLM_MODEL": "qwen2.5:7b-instruct",
         "EVAL_LLM_API_BASE": "http://localhost:11434/v1",
         "EVAL_LLM_API_KEY": "ollama",
         "TRACE_DB_PATH": str(tmp_path / "traces.duckdb"),

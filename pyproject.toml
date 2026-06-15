@@ -1,13 +1,11 @@
 [project]
 name = "agentic-rag-eval"
 version = "0.1.0"
-description = "RAG system with adaptive retrieval (Qdrant dense + sparse + RRF), cross-encoder re-ranking, and optional long-term memory (Mem0) — evaluated using HotpotQA EM/F1 on 5K questions. Dual-backend: runs locally via Ollama or via API. Dockerized."
+description = "Multi-Hop Agentic RAG with Systematic Evaluation — HotpotQA benchmark with Qdrant, LangGraph, Mem0, RAGAS, DeepEval, LLM-as-Judge."
+authors = [{ name = "Sheroz Shaikh" }]
 requires-python = ">=3.11,<3.13"
 readme = "README.md"
-license = {text = "MIT"}
-authors = [
-    {name = "SherozShaikh", email = "shaikh.sheroz07@gmail.com"},
-]
+license = { text = "MIT" }
 
 dependencies = [
   # API + serving

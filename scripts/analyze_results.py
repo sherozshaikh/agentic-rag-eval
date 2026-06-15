@@ -177,6 +177,54 @@ def _export(agentic: dict, baseline: dict, out_dir: Path):
     print(f"\n  Exported → {path}")
 
 
+# Ablation DuckDB files — ordered for display
+ABLATION_DBS: list[tuple[str, Path]] = [
+    ("agentic_full",  Path("results/traces_agentic_5k.duckdb")),
+    ("baseline",      Path("results/traces_baseline_5k.duckdb")),
+    ("no_decomp",     Path("results/ablation_no_decomp.duckdb")),
+    ("no_reranker",   Path("results/ablation_no_reranker.duckdb")),
+    ("steps_1",       Path("results/ablation_steps_1.duckdb")),
+    ("steps_2",       Path("results/ablation_steps_2.duckdb")),
+    ("steps_3",       Path("results/ablation_steps_3.duckdb")),
+    ("dense_only",    Path("results/ablation_dense_only.duckdb")),
+    ("sparse_only",   Path("results/ablation_sparse_only.duckdb")),
+    ("hybrid_only",   Path("results/ablation_hybrid_only.duckdb")),
+]
+
+
+def _print_ablation_table(rows: list[tuple[str, dict]]) -> None:
+    _header("Ablation Study — Component Isolation (5K HotpotQA)")
+    print(f"  {'Variant':<20} {'n':>5}  {'EM':>6}  {'F1':>6}  {'Latency(ms)':>12}")
+    _hr()
+    for label, s in rows:
+        print(f"  {label:<20} {int(s['n']):>5}  {s['em']:>6.3f}  {s['f1']:>6.3f}  {s['latency_ms']:>12.0f}")
+    _hr()
+    base = next((s for lbl, s in rows if lbl == "agentic_full"), None)
+    if base is None:
+        return
+    print()
+    print(f"  {'Variant':<20} {'EM delta':>9}  {'F1 delta':>9}")
+    _hr()
+    for label, s in rows:
+        if label == "agentic_full":
+            continue
+        print(f"  {label:<20} {s['em'] - base['em']:>+9.3f}  {s['f1'] - base['f1']:>+9.3f}")
+    _hr()
+
+
+def _export_ablations(rows: list[tuple[str, dict]], out_dir: Path) -> None:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    path = out_dir / "ablation_comparison.csv"
+    fieldnames = ["variant", "n", "em", "f1", "latency_ms", "exact_hits",
+                  "sf_precision", "sf_recall", "sf_f1"]
+    with open(path, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        for label, s in rows:
+            writer.writerow({"variant": label, **s})
+    print(f"\n  Exported → {path}")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--agentic", default=str(AGENTIC_DB))
@@ -184,7 +232,28 @@ def main():
     parser.add_argument(
         "--export", action="store_true", help="Write results/metrics_comparison.csv"
     )
+    parser.add_argument(
+        "--ablations", action="store_true",
+        help="Print ablation comparison table across all results/ablation_*.duckdb files"
+    )
     args = parser.parse_args()
+
+    if args.ablations:
+        rows: list[tuple[str, dict]] = []
+        for label, path in ABLATION_DBS:
+            if not path.exists():
+                print(f"  [skip] {label}: {path} not found")
+                continue
+            try:
+                rows.append((label, _summary(_connect(path))))
+            except Exception as e:
+                print(f"  [error] {label}: {e}")
+        print()
+        _print_ablation_table(rows)
+        print()
+        if args.export:
+            _export_ablations(rows, EXPORT_DIR)
+        return
 
     ag_conn = _connect(Path(args.agentic))
     bl_conn = _connect(Path(args.baseline))

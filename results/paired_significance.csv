@@ -1,0 +1,6 @@
+comparison,n,delta_em,em_p_mcnemar,em_sig,delta_f1,f1_p_wilcoxon,f1_sig,em_b10_betterwins,em_b01_worsewins
+agentic_full vs baseline,5000,10.08,6.818131622154435e-45,***,7.57,2.902756468163553e-28,***,913,409
+hybrid_only vs agentic_full,5000,1.8,4.142641840997688e-07,***,1.909,1.5466290781048043e-08,***,210,120
+steps_2 vs steps_1,5000,6.78,7.78210320037281e-41,***,7.326,6.686644445168705e-47,***,506,167
+agentic_full vs no_decomp,5000,1.36,0.0036332872874849558,**,1.43,0.0012417640975003787,**,346,278
+agentic_full vs no_reranker,5000,1.68,0.00011530424259238767,***,2.125,4.213222171541797e-07,***,297,213

@@ -32,8 +32,6 @@ COST_TABLE: dict[str, tuple[float, float]] = {
     "openai/gpt-4o": (2.50, 10.00),
     "anthropic/claude-3.5-haiku": (0.80, 4.00),
     "qwen/qwen-2.5-7b-instruct": (0.07, 0.07),
-    "qwen/qwen3.5-9b": (0.10, 0.30),
-    "qwen/qwen3.5-4b": (0.05, 0.15),
 }
 
 

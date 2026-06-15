@@ -12,7 +12,7 @@
 #
 # Flags:
 #   --skip-ollama   Don't install Ollama or start its service.
-#   --skip-model    Don't pull the default LLM (qwen3.5:9b).
+#   --skip-model    Don't pull the default LLM (qwen2.5:7b-instruct).
 #   --skip-qdrant   Don't start the Qdrant container.
 #   -h, --help      Show this help.
 # ==============================================================================
@@ -68,7 +68,7 @@ ENV_FILE="${PROJECT_ROOT}/.env"
 
 cd "${PROJECT_ROOT}"
 
-OLLAMA_MODEL="${OLLAMA_MODEL:-qwen3.5:9b}"
+OLLAMA_MODEL="${OLLAMA_MODEL:-qwen2.5:7b-instruct}"
 
 # ==============================================================================
 # Step 1 — Verify OS

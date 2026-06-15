@@ -23,7 +23,7 @@ def test_default_values(monkeypatch: pytest.MonkeyPatch) -> None:
     s = Settings(_env_file=None)
 
     assert s.llm_backend == "local"
-    assert s.llm_model == "qwen3.5:9b"
+    assert s.llm_model == "qwen2.5:7b-instruct"
     assert s.eval_llm_backend == "api"
     assert s.log_format == "json"
     assert s.log_level == "INFO"
@@ -61,8 +61,8 @@ def test_log_format_validator_accepts_valid(value: str) -> None:
 
 def test_config_hash_is_deterministic() -> None:
     """Two identical configs must hash to the same value."""
-    s1 = Settings(llm_model="qwen3.5:9b", llm_backend="local")
-    s2 = Settings(llm_model="qwen3.5:9b", llm_backend="local")
+    s1 = Settings(llm_model="qwen2.5:7b-instruct", llm_backend="local")
+    s2 = Settings(llm_model="qwen2.5:7b-instruct", llm_backend="local")
     assert s1.config_hash() == s2.config_hash()
 
 
@@ -75,8 +75,8 @@ def test_config_hash_excludes_secrets() -> None:
 
 def test_config_hash_changes_on_nonsecret_field() -> None:
     """Any change to a non-secret field must produce a new hash."""
-    s1 = Settings(llm_model="qwen3.5:9b")
-    s2 = Settings(llm_model="qwen3.5:9b-instruct")
+    s1 = Settings(llm_model="qwen2.5:7b-instruct")
+    s2 = Settings(llm_model="qwen2.5:7b")
     assert s1.config_hash() != s2.config_hash()
 
 
