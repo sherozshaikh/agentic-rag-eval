@@ -4,7 +4,7 @@
 
 This repository accompanies the paper *Dissecting Agentic RAG: A Component Ablation for Multi-Hop QA with a Local 7B Model*. It implements an agentic retrieval-augmented generation pipeline and a controlled ablation study that isolates the contribution of each component, run entirely on a local Qwen2.5-7B-Instruct model with no proprietary APIs.
 
-📄 **Paper:** arXiv link coming soon.
+📄 **Paper:** [arXiv:2606.21553](https://arxiv.org/abs/2606.21553)
 
 The pipeline is **plan-and-execute** (not a per-step ReAct loop): a decomposer splits each question into sub-questions up front, an iterative retrieval loop gathers evidence for each (rule-based routing over Qdrant dense / sparse / RRF hybrid, then cross-encoder reranking), and a single synthesis call produces the answer. The model is not queried between retrieval steps.
 
@@ -130,10 +130,13 @@ make typecheck     # mypy
 
 ```bibtex
 @misc{shaikh2026agenticrag,
-  title  = {Dissecting Agentic RAG: A Component Ablation for Multi-Hop QA with a Local 7B Model},
-  author = {Shaikh, Sheroz},
-  year   = {2026},
-  note   = {arXiv preprint}
+  title         = {Dissecting Agentic RAG: A Component Ablation for Multi-Hop QA with a Local 7B Model},
+  author        = {Shaikh, Sheroz},
+  year          = {2026},
+  eprint        = {2606.21553},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL},
+  url           = {https://arxiv.org/abs/2606.21553}
 }
 ```
 
